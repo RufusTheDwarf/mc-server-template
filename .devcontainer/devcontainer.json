@@ -1,0 +1,20 @@
+{
+  "name": "Serveur Minecraft",
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "21"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3"
+    }
+  },
+  "postCreateCommand": "bash scripts/download-papermc.sh && pip3 install --no-cache-dir -r requirements.txt 2>/dev/null || true",
+  "onCreateCommand": "mkdir -p ~/minecraft-server && cp scripts/start.sh scripts/keep-alive.sh scripts/backup.sh ~/",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash"
+      }
+    }
+  }
+}
