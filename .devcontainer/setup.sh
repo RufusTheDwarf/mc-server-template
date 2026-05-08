@@ -5,15 +5,11 @@ echo "=============================================="
 echo " Minecraft Server - Configuration automatique"
 echo "=============================================="
 
-# ------------------------------------------------------------
 # 1. Installer les dépendances système
-# ------------------------------------------------------------
-echo ">>> Installation de jq..."
-sudo apt-get update -qq && sudo apt-get install -y -qq jq
+echo ">>> Installation de jq et autres outils..."
+sudo apt-get update -qq && sudo apt-get install -y -qq jq curl wget tar
 
-# ------------------------------------------------------------
 # 2. Télécharger PaperMC
-# ------------------------------------------------------------
 echo ">>> Téléchargement de PaperMC..."
 mkdir -p ~/minecraft-server
 
@@ -31,10 +27,8 @@ wget -q --show-progress -O ~/minecraft-server/server.jar \
 echo "eula=true" > ~/minecraft-server/eula.txt
 echo "   PaperMC $VERSION (build $BUILD) installé."
 
-# ------------------------------------------------------------
 # 3. Mettre en place les scripts de gestion
-# ------------------------------------------------------------
-echo ">>> Mise en place des scripts..."
+echo ">>> Création des scripts..."
 
 # start.sh
 cat > ~/start.sh << 'STARTEOF'
@@ -88,32 +82,36 @@ chmod +x ~/backup.sh
 
 echo "   Scripts prêts."
 
-# ------------------------------------------------------------
-# 4. Installer Crafty Controller
-# ------------------------------------------------------------
+# 4. Installer Crafty Controller (sans script interactif)
 echo ">>> Installation de Crafty Controller..."
 
-cd ~
-git clone --depth 1 https://gitlab.com/crafty-controller/crafty-installer-4.0.git /tmp/crafty-installer 2>/dev/null || true
-cd /tmp/crafty-installer
+# Créer l'utilisateur système si nécessaire
+if ! id -u crafty &>/dev/null; then
+    sudo adduser --system --group --home /var/opt/minecraft/crafty crafty
+fi
 
-# Exécution non-interactive de l'installateur
-sudo ./install_crafty.sh << ANSWERS
+CRAFTY_HOME="/var/opt/minecraft/crafty"
+CRAFTY_DIR="$CRAFTY_HOME/crafty-4"
+sudo mkdir -p "$CRAFTY_HOME"
 
-y
-ANSWERS
+# Cloner le dépôt Crafty 4
+sudo git clone --depth 1 https://gitlab.com/crafty-controller/crafty-4.git "$CRAFTY_DIR"
+sudo chown -R crafty:crafty "$CRAFTY_HOME"
 
-# Copier le fichier de configuration pré-rempli (admin + mot de passe)
-sudo cp /workspaces/mc-server-template/config/default.json /var/opt/minecraft/crafty/app/config/default.json
-sudo chown crafty:crafty /var/opt/minecraft/crafty/app/config/default.json
+# Mettre en place l'environnement virtuel
+cd "$CRAFTY_DIR"
+sudo -u crafty python3 -m venv "$CRAFTY_DIR/.venv"
+sudo -u crafty "$CRAFTY_DIR/.venv/bin/pip" install -r requirements.txt
+
+# Copier la configuration pré-remplie
+sudo mkdir -p "$CRAFTY_DIR/app/config"
+sudo cp /workspaces/mc-server-template/config/default.json "$CRAFTY_DIR/app/config/default.json"
+sudo chown -R crafty:crafty "$CRAFTY_DIR/app/config"
 
 echo "   Crafty Controller installé."
 
-# ------------------------------------------------------------
-# 5. Installer Playit.gg (seulement l'agent)
-# ------------------------------------------------------------
+# 5. Installer l'agent Playit.gg
 echo ">>> Installation de l'agent Playit.gg..."
-
 curl -SsL https://playit-cloud.github.io/ppa/install.sh | bash
 
 echo ""
@@ -131,5 +129,5 @@ echo "Pour jouer, exécute :"
 echo "  nohup ~/keep-alive.sh &"
 echo "  playit &"
 echo "  ~/start.sh &"
-echo "  sudo -u crafty bash -c 'source /var/opt/minecraft/crafty/.venv/bin/activate && cd /var/opt/minecraft/crafty/crafty-4 && python3 main.py' &"
+echo "  sudo -u crafty bash -c 'source /var/opt/minecraft/crafty/crafty-4/.venv/bin/activate && cd /var/opt/minecraft/crafty/crafty-4 && python3 main.py' &"
 echo ""
