@@ -7,7 +7,7 @@ echo "=============================================="
 
 # 1. Installer les dépendances système
 echo ">>> Installation de jq et autres outils..."
-sudo apt-get update -qq && sudo apt-get install -y -qq jq curl wget tar
+sudo apt-get update -qq && sudo apt-get install -y -qq jq curl wget tar git
 
 # 2. Télécharger PaperMC
 echo ">>> Téléchargement de PaperMC..."
@@ -30,11 +30,11 @@ echo "   PaperMC $VERSION (build $BUILD) installé."
 # 3. Mettre en place les scripts de gestion
 echo ">>> Création des scripts..."
 
-# start.sh
+# start.sh — RAM réduite à 2G (limite Codespaces free tier = 4G total)
 cat > ~/start.sh << 'STARTEOF'
 #!/bin/bash
 cd ~/minecraft-server
-java -Xms4G -Xmx4G \
+java -Xms2G -Xmx2G \
   -XX:+UseG1GC \
   -XX:+ParallelRefProcEnabled \
   -XX:MaxGCPauseMillis=200 \
@@ -103,9 +103,10 @@ cd "$CRAFTY_DIR"
 sudo -u crafty python3 -m venv "$CRAFTY_DIR/.venv"
 sudo -u crafty "$CRAFTY_DIR/.venv/bin/pip" install -r requirements.txt
 
-# Copier la configuration pré-remplie
+# BUG CORRIGÉ : chemin dynamique au lieu de /workspaces/mc-server-template/ (cassé si le repo est renommé)
+WORKDIR=$(find /workspaces -maxdepth 1 -mindepth 1 -type d | head -1)
 sudo mkdir -p "$CRAFTY_DIR/app/config"
-sudo cp /workspaces/mc-server-template/config/default.json "$CRAFTY_DIR/app/config/default.json"
+sudo cp "$WORKDIR/config/default.json" "$CRAFTY_DIR/app/config/default.json"
 sudo chown -R crafty:crafty "$CRAFTY_DIR/app/config"
 
 echo "   Crafty Controller installé."
