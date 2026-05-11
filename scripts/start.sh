@@ -1,3 +1,8 @@
+# Si le fichier n'existe pas encore, lancer la configuration interactive
+if [ ! -f /home/codespace/server/server.properties ]; then
+    bash /workspaces/mc-server-template/scripts/setup-config.sh
+fi
+
 #!/bin/bash
 cd ~/minecraft-server
 java -Xms4G -Xmx4G \
