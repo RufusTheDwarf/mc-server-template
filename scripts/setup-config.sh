@@ -24,8 +24,10 @@ case $difficulty_choice in
     *) difficulty="normal" ;;
 esac
 
-# Créer le fichier server.properties avec les bons paramètres
-cat > /home/codespace/server/server.properties << EOF
+# BUG CORRIGÉ : mauvais chemin (/home/codespace/server/ → ~/minecraft-server/)
+mkdir -p ~/minecraft-server
+
+cat > ~/minecraft-server/server.properties << PROPSEOF
 # Configuration générée automatiquement
 motd=$server_name
 difficulty=$difficulty
@@ -36,7 +38,7 @@ spawn-protection=0
 max-players=20
 view-distance=10
 simulation-distance=8
-EOF
+PROPSEOF
 
 echo ""
 echo "✅ Configuration terminée !"
