@@ -1,11 +1,11 @@
-# Si le fichier n'existe pas encore, lancer la configuration interactive
-if [ ! -f /home/codespace/server/server.properties ]; then
-    bash /workspaces/mc-server-template/scripts/setup-config.sh
+#!/bin/bash
+# BUG CORRIGÉ : shebang manquant + mauvais chemin (/home/codespace/server/ → ~/minecraft-server/)
+if [ ! -f ~/minecraft-server/server.properties ]; then
+    bash "$(find /workspaces -maxdepth 1 -mindepth 1 -type d | head -1)/scripts/setup-config.sh"
 fi
 
-#!/bin/bash
 cd ~/minecraft-server
-java -Xms4G -Xmx4G \
+java -Xms2G -Xmx2G \
   -XX:+UseG1GC \
   -XX:+ParallelRefProcEnabled \
   -XX:MaxGCPauseMillis=200 \
