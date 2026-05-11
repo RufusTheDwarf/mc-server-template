@@ -117,18 +117,32 @@ curl -SsL https://playit-cloud.github.io/ppa/install.sh | bash
 
 echo ""
 echo "=============================================="
+echo " Démarrage automatique du serveur..."
+echo "=============================================="
+
+# Démarrage automatique de tout ce qui ne nécessite pas d'auth manuelle
+nohup ~/keep-alive.sh >> ~/keep-alive.log 2>&1 &
+echo "   ✅ keep-alive démarré (PID $!)"
+
+nohup ~/start.sh >> ~/minecraft-server/server.log 2>&1 &
+echo "   ✅ Serveur Minecraft démarré (PID $!)"
+
+nohup sudo -u crafty bash -c \
+  'source /var/opt/minecraft/crafty/crafty-4/.venv/bin/activate && cd /var/opt/minecraft/crafty/crafty-4 && python3 main.py' \
+  >> ~/crafty.log 2>&1 &
+echo "   ✅ Crafty Controller démarré (PID $!)"
+
+echo ""
+echo "=============================================="
 echo " Configuration terminée !"
 echo "=============================================="
 echo ""
-echo "Prochaine étape : authentifier Playit.gg"
-echo "  1. Lance : playit"
+echo "⚠️  UNE SEULE étape manuelle : authentifier Playit.gg"
+echo ""
+echo "  1. Lance :  playit"
 echo "  2. Ouvre le lien dans ton navigateur"
 echo "  3. Connecte-toi et clique sur 'Claim Agent'"
-echo "  4. Relance en arrière-plan : playit &"
+echo "  4. Relance :  playit &"
 echo ""
-echo "Pour jouer, exécute :"
-echo "  nohup ~/keep-alive.sh &"
-echo "  playit &"
-echo "  ~/start.sh &"
-echo "  sudo -u crafty bash -c 'source /var/opt/minecraft/crafty/crafty-4/.venv/bin/activate && cd /var/opt/minecraft/crafty/crafty-4 && python3 main.py' &"
+echo "Ensuite donne l'adresse Playit.gg à tes amis et c'est parti !"
 echo ""
